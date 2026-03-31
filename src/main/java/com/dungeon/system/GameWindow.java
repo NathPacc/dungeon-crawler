@@ -18,9 +18,12 @@ public class GameWindow extends JFrame {
         this.dungeon = dungeon;
         this.hero = hero;
         this.enemy = enemy;
-        this.hero.setPosition(new Coordinates(1,0));
+
+        this.hero.setPosition(new Coordinates(1, 0));
+
         int randomX = 0;
         int randomY = 0;
+
         boolean positionValide = false;
         while (!positionValide) {
             randomX = rand.nextInt(dungeon.getWidth() - 2) + 1;
@@ -67,9 +70,25 @@ public class GameWindow extends JFrame {
             hero.getPosition().getY() + dy
         );
 
-        // Utilisation de TA méthode isWalkable !
         if (dungeon.isWalkable(nextPos)) {
             hero.move(dx, dy);
+            enemy.takeTurn(dungeon);
+            if (hero.getPosition().getX() == enemy.getPosition().getX() && 
+            hero.getPosition().getY() == enemy.getPosition().getY()) {
+                
+               while (hero.getHp() > 0 && enemy.getHp() > 0) {
+                    hero.attack(enemy);
+                    
+                    if (enemy.isAlive()) {
+                        enemy.attack(hero);
+                    } else {
+                        System.out.println("L'ennemi est terrassé !");
+                        enemy.setPosition(new Coordinates(-99, -99));
+                    }
+                    
+                    System.out.println("PV Héros : " + hero.getHp() + " | PV Ennemi : " + enemy.getHp());
+                }
+            }
             repaint(); // Force le rafraîchissement du dessin
         }
     }

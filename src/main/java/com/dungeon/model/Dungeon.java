@@ -20,9 +20,7 @@ public class Dungeon {
         // Generating grid with entry, walls around the room and random cells elswhere
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                if (i==1 && j==0) {
-                    grid[i][j] = new Cell("FLOOR");
-                } else if (i == 0 || i == width-1 || j == 0 || j == height-1) {
+                if (i == 0 || i == width-1 || j == 0 || j == height-1) {
                     grid[i][j] = new Cell("WALL");
                 } else {
                     if (rand.nextInt(3) == 0) {
@@ -37,6 +35,7 @@ public class Dungeon {
         int randomX = rand.nextInt(width - 2) + 1;
         int randomY = rand.nextInt(height - 2) + 1;
         grid[randomX][randomY].setType("STAIRS");
+        grid[1][0].setType("FLOOR");
     }
 
     private boolean isOutOfBounds(int x, int y) {

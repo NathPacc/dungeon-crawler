@@ -4,7 +4,7 @@ import com.dungeon.model.*;
 import com.dungeon.system.GameWindow;
 
 public class Main {
-    public static void main(String[] args) {
+       public static void main(String[] args) {
         
         Dungeon dungeon = new Dungeon(15, 15);
         Hero hero = new Hero("Lancelot", 100, 15);
