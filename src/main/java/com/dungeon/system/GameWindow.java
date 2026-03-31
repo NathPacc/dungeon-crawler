@@ -29,11 +29,11 @@ public class GameWindow extends JFrame {
             randomX = rand.nextInt(dungeon.getWidth() - 2) + 1;
             randomY = rand.nextInt(dungeon.getHeight() - 2) + 1;
 
+        
             if (dungeon.isWalkable(new Coordinates(randomX, randomY)) && (randomX != 1 || randomY != 0)) {
                 positionValide = true;
             }
         }
-
         this.enemy.setPosition(new Coordinates(randomX, randomY));
 
         this.setTitle("Java Dungeon Adventure");
