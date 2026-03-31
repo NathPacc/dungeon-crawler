@@ -2,6 +2,7 @@ package com.dungeon.model;
 
 public abstract class Entity {
     protected String name;
+    protected boolean alive;
     protected int hp;
     protected int maxHp; // To prevent healing further
     protected int attackPower;

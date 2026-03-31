@@ -21,6 +21,9 @@ public class Enemy extends Entity {
     }
 
     public void takeTurn(Dungeon dungeon) {
+        if (!this.isAlive()) {
+            return;
+        }
         Random rand = new Random();
         Coordinates nextPos = new Coordinates(0,0);
         int trycount = 0;
