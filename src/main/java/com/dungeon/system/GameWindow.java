@@ -92,6 +92,21 @@ public class GameWindow extends JFrame {
                 }
             }
             enemy.takeTurn(dungeon);
+            if (hero.getPosition().isEqual(enemy.getPosition())) {
+                
+               while (hero.getHp() > 0 && enemy.getHp() > 0) {
+                    hero.attack(enemy);
+                    
+                    if (enemy.isAlive()) {
+                        enemy.attack(hero);
+                    } else {
+                        System.out.println("L'ennemi est terrassé !");
+                        enemy.setPosition(new Coordinates(-99, -99));
+                    }
+                    
+                    System.out.println("PV Héros : " + hero.getHp() + " | PV Ennemi : " + enemy.getHp());
+                }
+            }
             repaint(); // Force le rafraîchissement du dessin
         }
     }
