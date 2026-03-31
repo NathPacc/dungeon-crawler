@@ -13,7 +13,7 @@ public abstract class Entity {
         this.maxHp = hp; //Initialized with starting value
         this.hp = hp;
         this.attackPower = attackPower;
-        this.position = new Coordinates(1, 0);
+        this.position = new Coordinates(-99, -99);
     }
 
     public void move(int dx, int dy) {
@@ -39,4 +39,7 @@ public abstract class Entity {
     // Getters
     public String getName() { return name; }
     public int getHp() { return hp; }
+    public void setPosition(Coordinates position) {
+        this.position = position;
+    }
 }
