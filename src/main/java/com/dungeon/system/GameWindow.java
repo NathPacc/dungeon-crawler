@@ -5,15 +5,36 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Random;
 
 public class GameWindow extends JFrame {
     private Dungeon dungeon;
     private Hero hero;
+    private Enemy enemy;
     private final int TILE_SIZE = 40;
 
-    public GameWindow(Dungeon dungeon, Hero hero) {
+    public GameWindow(Dungeon dungeon, Hero hero, Enemy enemy) {
+        Random rand = new Random();
         this.dungeon = dungeon;
         this.hero = hero;
+        this.enemy = enemy;
+
+        this.hero.setPosition(new Coordinates(1, 0));
+
+        int randomX = 0;
+        int randomY = 0;
+
+        boolean positionValide = false;
+        while (!positionValide) {
+            randomX = rand.nextInt(dungeon.getWidth() - 2) + 1;
+            randomY = rand.nextInt(dungeon.getHeight() - 2) + 1;
+
+            if (dungeon.isWalkable(new Coordinates(randomX, randomY)) && (randomX != 1 || randomY != 0)) {
+                positionValide = true;
+            }
+        }
+
+        this.enemy.setPosition(new Coordinates(randomX, randomY));
 
         this.setTitle("Java Dungeon Adventure");
         this.setSize(dungeon.getWidth() * TILE_SIZE, dungeon.getHeight() * TILE_SIZE + 40);
@@ -49,9 +70,25 @@ public class GameWindow extends JFrame {
             hero.getPosition().getY() + dy
         );
 
-        // Utilisation de TA méthode isWalkable !
         if (dungeon.isWalkable(nextPos)) {
             hero.move(dx, dy);
+            enemy.takeTurn(dungeon);
+            if (hero.getPosition().getX() == enemy.getPosition().getX() && 
+            hero.getPosition().getY() == enemy.getPosition().getY()) {
+                
+               while (hero.getHp() > 0 && enemy.getHp() > 0) {
+                    hero.attack(enemy);
+                    
+                    if (enemy.isAlive()) {
+                        enemy.attack(hero);
+                    } else {
+                        System.out.println("L'ennemi est terrassé !");
+                        enemy.setPosition(new Coordinates(-99, -99));
+                    }
+                    
+                    System.out.println("PV Héros : " + hero.getHp() + " | PV Ennemi : " + enemy.getHp());
+                }
+            }
             repaint(); // Force le rafraîchissement du dessin
         }
     }
@@ -77,6 +114,11 @@ public class GameWindow extends JFrame {
             g.setColor(Color.BLUE);
             g.fillOval(hero.getPosition().getX() * TILE_SIZE + 5, 
                        hero.getPosition().getY() * TILE_SIZE + 5, 
+                       TILE_SIZE - 10, TILE_SIZE - 10);
+
+            g.setColor(Color.RED);
+            g.fillOval(enemy.getPosition().getX() * TILE_SIZE + 5, 
+                       enemy.getPosition().getY() * TILE_SIZE + 5, 
                        TILE_SIZE - 10, TILE_SIZE - 10);
         }
     }

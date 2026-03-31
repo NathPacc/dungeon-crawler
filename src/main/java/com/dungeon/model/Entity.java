@@ -39,4 +39,7 @@ public abstract class Entity {
     // Getters
     public String getName() { return name; }
     public int getHp() { return hp; }
+    public void setPosition(Coordinates position) {
+        this.position = position;
+    }
 }
