@@ -69,12 +69,14 @@ public class GameWindow extends JFrame {
             hero.getPosition().getX() + dx, 
             hero.getPosition().getY() + dy
         );
-
+        if (nextPos.isEqual(dungeon.getStairPos())){
+            hero.setPosition(new Coordinates(-99,-99));
+            enemy.setPosition(new Coordinates(-99,-99));
+            System.out.println("Niveau terminé !");
+        }
         if (dungeon.isWalkable(nextPos)) {
             hero.move(dx, dy);
-            enemy.takeTurn(dungeon);
-            if (hero.getPosition().getX() == enemy.getPosition().getX() && 
-            hero.getPosition().getY() == enemy.getPosition().getY()) {
+            if (hero.getPosition().isEqual(enemy.getPosition())) {
                 
                while (hero.getHp() > 0 && enemy.getHp() > 0) {
                     hero.attack(enemy);
@@ -89,6 +91,7 @@ public class GameWindow extends JFrame {
                     System.out.println("PV Héros : " + hero.getHp() + " | PV Ennemi : " + enemy.getHp());
                 }
             }
+            enemy.takeTurn(dungeon);
             repaint(); // Force le rafraîchissement du dessin
         }
     }

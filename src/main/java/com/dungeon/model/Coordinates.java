@@ -19,6 +19,10 @@ public class Coordinates {
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
 
+    public boolean isEqual(Coordinates position) {
+        return (this.x == position.x && this.y == position.y);
+    }
+
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
