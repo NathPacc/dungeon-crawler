@@ -37,7 +37,6 @@ public abstract class Entity {
        return this.hp > 0;
     }
 
-    // Getters
     public String getName() { return name; }
     public int getHp() { return hp; }
     public void setPosition(Coordinates position) {
