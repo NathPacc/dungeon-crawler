@@ -8,34 +8,70 @@ public class Dungeon {
     private Cell[][] grid;
     private Coordinates stairPos;
     private final Random rand = new Random();
+    public Coordinates heroSpawn = new Coordinates(1,1);
 
+
+    // Constructor
     public Dungeon(int width, int height) {
         this.width = width;
         this.height = height;
         this.grid = new Cell[width][height];
-        // On ne génère rien ici, on laisse le Main décider quand lancer la génération
     }
 
-    public void generate(Coordinates heroPos) {
-        boolean dungeonReady = false;
+    /**
+     * Génère un donjon valide et retourne toutes les cases FLOOR accessibles
+     * depuis spawnPos (hors spawn lui-même), prêtes à accueillir ennemis et escalier.
+     */
+    public java.util.List<Coordinates> generate(Coordinates spawnPos) {
+        java.util.List<Coordinates> availableFloors;
         int tries = 0;
-
-        while (!dungeonReady) {
-            // 1. Remplissage de base
+        do {
             fillWithRandomTiles();
-            
-            // 2. Placement de l'escalier sur une case FLOOR
-            this.stairPos = findRandomEmptyPos();
-            grid[stairPos.getX()][stairPos.getY()].setType("STAIRS");
-
-            // 3. Test de connectivité (Héros -> Escalier)
-            // On ne teste pas l'ennemi ici, on le placera sur une case déjà validée après !
-            if (isReachable(heroPos, stairPos)) {
-                dungeonReady = true;
-            }
+            cullUnreachableFloors(spawnPos);
+            availableFloors = collectFloors(spawnPos);
             tries++;
-            if (tries%1000 == 0) {
-                System.err.println("Milles tentatives passées");
+        } while (availableFloors.size() < 2 && tries < 10000);
+        // Au moins 2 cases : une pour l'escalier, une pour les ennemis
+
+        // Place l'escalier sur une case aléatoire parmi les disponibles
+        java.util.Collections.shuffle(availableFloors, rand);
+        Coordinates stairs = availableFloors.remove(0);
+        this.stairPos = stairs;
+        grid[stairs.getX()][stairs.getY()].setType("STAIRS");
+
+        return availableFloors; // cases restantes pour les ennemis
+    }
+
+    /**
+     * Retourne toutes les cases FLOOR accessibles, en excluant le spawn.
+     */
+    private java.util.List<Coordinates> collectFloors(Coordinates exclude) {
+        java.util.List<Coordinates> floors = new java.util.ArrayList<>();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (grid[i][j].getType().equals("FLOOR")) {
+                    Coordinates c = new Coordinates(i, j);
+                    if (!c.isEqual(exclude)) floors.add(c);
+                }
+            }
+        }
+        return floors;
+    }
+
+    /**
+     * Convertit en WALL toutes les cases FLOOR qui ne sont pas accessibles
+     * depuis spawnPos en déplacement 4-directionnel.
+     * Après cet appel, toute case FLOOR est garantie dans la même zone connexe.
+     */
+    private void cullUnreachableFloors(Coordinates spawnPos) {
+        boolean[][] reachable = new boolean[width][height];
+        floodFill(spawnPos.getX(), spawnPos.getY(), reachable);
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (!reachable[i][j] && !grid[i][j].getType().equals("WALL")) {
+                    grid[i][j].setType("WALL");
+                }
             }
         }
     }
@@ -43,46 +79,35 @@ public class Dungeon {
     private void fillWithRandomTiles() {
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                // 1. On définit d'abord les murs de bordure
                 if (i == 0 || i == width - 1 || j == 0 || j == height - 1) {
                     grid[i][j] = new Cell("WALL");
                 } 
-                // 2. On définit le reste aléatoirement
                 else {
                     grid[i][j] = new Cell(rand.nextInt(3) == 0 ? "WALL" : "FLOOR");
                 }
             }
         }
-        // 3. À LA TOUTE FIN, on force le passage pour le héros
-        // On utilise (1, 1) car (1, 0) est dans le mur de bordure !
-        grid[1][0].setType("FLOOR"); 
+        grid[1][1].setType("FLOOR"); // garantit que le spawn est toujours praticable
     }
 
-    // Trouve une case FLOOR qui n'est pas l'entrée
-    public Coordinates findRandomEmptyPos() {
-        int rx, ry;
-        do {
-            rx = rand.nextInt(width - 2) + 1;
-            ry = rand.nextInt(height - 2) + 1;
-        } while (!grid[rx][ry].getType().equals("FLOOR"));
-        return new Coordinates(rx, ry);
-    }
+    // Flood fill itératif
+    private void floodFill(int startX, int startY, boolean[][] visited) {
+        if (isOutOfBounds(startX, startY) || grid[startX][startY].getType().equals("WALL")) return;
 
-    private boolean isReachable(Coordinates start, Coordinates end) {
-        boolean[][] visited = new boolean[width][height];
-        floodFill(start.getX(), start.getY(), visited);
-        return visited[end.getX()][end.getY()];
-    }
+        java.util.Deque<int[]> stack = new java.util.ArrayDeque<>();
+        stack.push(new int[]{startX, startY});
 
-    private void floodFill(int x, int y, boolean[][] visited) {
-        if (isOutOfBounds(x, y) || visited[x][y] || grid[x][y].getType().equals("WALL")) {
-            return;
+        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};
+
+        while (!stack.isEmpty()) {
+            int[] cur = stack.pop();
+            int x = cur[0], y = cur[1];
+
+            if (isOutOfBounds(x, y) || visited[x][y] || grid[x][y].getType().equals("WALL")) continue;
+
+            visited[x][y] = true;
+            for (int[] d : dirs) stack.push(new int[]{x + d[0], y + d[1]});
         }
-        visited[x][y] = true;
-        floodFill(x + 1, y, visited);
-        floodFill(x - 1, y, visited);
-        floodFill(x, y + 1, visited);
-        floodFill(x, y - 1, visited);
     }
 
     public boolean isWalkable(Coordinates pos) {
@@ -94,7 +119,6 @@ public class Dungeon {
         return x < 0 || x >= width || y < 0 || y >= height;
     }
 
-    // Getters
     public Cell getCell(int x, int y) { return grid[x][y]; }
     public int getWidth() { return width; }
     public int getHeight() { return height; }
